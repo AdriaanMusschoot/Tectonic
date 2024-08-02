@@ -1,0 +1,3 @@
+[submodule "Amugen"]
+	path = Amugen
+	url = https://github.com/AdriaanMusschoot/Amugen
