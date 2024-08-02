@@ -14,7 +14,7 @@ set(TECTONIC_SOURCE_FILES
 )
 
 add_executable(${TARGET_NAME} ${TECTONIC_SOURCE_FILES})
-
+ 
 target_include_directories(${TARGET_NAME} PUBLIC ${GAME_FILES_DIR})
 
 # enable c++20 features
