@@ -24,7 +24,7 @@ int main(int, char*[])
 	if(not fs::exists(data_location))
 		data_location = "../Resources/";
 
-	amu::Amugen engine(data_location, 600, 400);
+	amu::Amugen engine(data_location, "Tectonic", 1000, 800);
 
 	auto& sm{ amu::SceneManager::GetInstance() };
 
@@ -33,6 +33,4 @@ int main(int, char*[])
 	sm.SetCurrentScene("Main Level");
 
 	engine.Run();
-
-    return 0;
 }
