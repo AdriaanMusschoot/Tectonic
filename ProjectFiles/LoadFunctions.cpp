@@ -14,7 +14,7 @@ void tct::LoadMainScene(amu::Scene* scenePtr)
 
 		playfieldGridPtr->AddComponent<amu::TransformComponent>(playfieldGridPtr.get(), glm::vec2{ 0, 0 });
 
-		playfieldGridPtr->AddComponent<tct::TectonicGridComponent>(playfieldGridPtr.get(), 10, 10, 5);
+		playfieldGridPtr->AddComponent<tct::TectonicGridComponent>(playfieldGridPtr.get(), scenePtr, 10, 10, 5);
 
 		/*auto* rdrCompPtr{playfieldGridPtr->AddComponent<amu::RenderComponent>(playfieldGridPtr.get(), tct::img::nr1)};
 
