@@ -7,6 +7,7 @@
 #include <array>
 
 #include "RenderComponent.h"
+#include "TextComponent.h"
 
 #include "Configuration.h"
 
@@ -16,7 +17,7 @@ tct::TectonicGridComponent::TectonicGridComponent(amu::GameObject* ownerObjectPt
 	, m_Cols{ cols }
 	, m_HighestNumber{ highestNr }
 	, m_GridVec(rows * cols, 0)
-	, m_RegionIDVec(rows * cols, 0)
+	, m_RegionIDVec(rows * cols, max::UIN)
 {
 	FillRegions(scenePtr);
 	FillGrid(scenePtr);
@@ -24,17 +25,40 @@ tct::TectonicGridComponent::TectonicGridComponent(amu::GameObject* ownerObjectPt
 
 void tct::TectonicGridComponent::FillRegions(amu::Scene*)
 {
-	std::array<std::pair<int, int>, 4> const directions{ { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } } };
-
 	std::random_device randDev{};
-
-	std::uniform_int_distribution<unsigned int> dist{ 1, m_HighestNumber };
+	std::mt19937 rng(randDev());
+	std::uniform_int_distribution<unsigned int> distSize{ 1, m_HighestNumber };
 	
+	unsigned int ID{};
 
-	for (unsigned int idx{}; idx < std::size(m_RegionIDVec); ++idx)
+	for (unsigned int arrIdx{}; arrIdx < std::size(m_RegionIDVec); ++arrIdx)
 	{
-		unsigned int regionSize{ dist(randDev) };
-		std::cout << regionSize << "\n";
+		if (m_RegionIDVec[arrIdx] == max::UIN)
+		{
+			unsigned int const regionSize{ distSize(rng) };
+			std::cout << regionSize << "\n";
+			m_RegionIDVec[arrIdx] = ID;
+
+			unsigned int currentArrIdx{ arrIdx };
+
+			for (unsigned int regionIdx{ 1 }; regionIdx < regionSize; ++regionIdx)
+			{
+				std::vector<direction> const possibleNeighbourVec{ GetNeighbourDirectionsWithoutID(currentArrIdx) };
+				unsigned int const nrNeighbours{ static_cast<unsigned int>(std::size(possibleNeighbourVec)) };
+				if (nrNeighbours > 0)
+				{
+					std::uniform_int_distribution<unsigned int> distDirs{ 0, nrNeighbours - 1 };
+					direction const& dir{ possibleNeighbourVec[distDirs(rng)] };
+					currentArrIdx = GetNeighbourIdx(dir, currentArrIdx);
+					m_RegionIDVec[currentArrIdx] = ID;
+				}
+				else
+				{
+					break;
+				}
+			}
+			++ID;
+		}
 	}
 }
 
@@ -55,7 +79,7 @@ void tct::TectonicGridComponent::FillGrid(amu::Scene* scenePtr)
 			assert(arrIdx < std::size(m_GridVec));
 			
 			unsigned int cellValue{ dist(randDev) };
-			while (DoAdjecentCellsContainValue(rowIdx, colIdx, arrIdx, cellValue))
+			while (DoAdjecentCellsContainValue(arrIdx, cellValue))
 			{
 				cellValue = dist(randDev);
 			} 
@@ -65,9 +89,7 @@ void tct::TectonicGridComponent::FillGrid(amu::Scene* scenePtr)
 			cellUPtr->AddComponent<amu::TransformComponent>(cellUPtr.get(), glm::vec2{ border + colIdx * sideLength, border + rowIdx * sideLength });
 			cellUPtr->SetParent(GetComponentOwner(), true);
 
-			auto rdrCompPtr{ cellUPtr->AddComponent<amu::RenderComponent>(cellUPtr.get(), GetNrFilePath(cellValue)) };
-			auto dim{ rdrCompPtr->GetSize() };
-			rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
+			cellUPtr->AddComponent<amu::TextComponent>(cellUPtr.get(), std::to_string(m_RegionIDVec[arrIdx]), fnt::LINGUA, 20);
 
 			scenePtr->Add(std::move(cellUPtr));
 		}
@@ -98,80 +120,151 @@ std::string_view tct::TectonicGridComponent::GetNrFilePath(unsigned int nr)
 	}
 }
 
-bool tct::TectonicGridComponent::IsNeighbourCellHorizontal(std::pair<int, int> const& direction, unsigned int colIdx)
+unsigned int tct::TectonicGridComponent::GetNeighbourIdxLeft(unsigned int arrIdx)
 {
-	if (direction == tct::dir::LEFT)
+	unsigned int const colIdxLeft{ arrIdx % m_Cols - 1 };
+	if (colIdxLeft >= 0 and colIdxLeft < m_Cols)
 	{
-		return colIdx - 1 >= 0 and colIdx - 1 < m_Cols;
+		return arrIdx - 1;
 	}
-	else if (direction == tct::dir::RIGHT)
-	{
-		return colIdx + 1 < m_Cols;
-	}
-	return false;
+	return max::UIN;
 }
 
-bool tct::TectonicGridComponent::IsNeighbourCellVertical(std::pair<int, int> const& direction, unsigned int rowIdx)
+unsigned int tct::TectonicGridComponent::GetNeighbourIdxRight(unsigned int arrIdx)
 {
-	if (direction == tct::dir::UP)
+	unsigned int const colIdxRight{ arrIdx % m_Cols + 1 };
+	if (colIdxRight < m_Cols)
 	{
-		return rowIdx - 1 >= 0 and rowIdx - 1 < m_Rows;
+		return arrIdx + 1;
 	}
-	else if (direction == tct::dir::DOWN)
-	{
-		return rowIdx + 1 < m_Rows;
-	}
-	return false;
+	return max::UIN;
 }
 
-bool tct::TectonicGridComponent::DoAdjecentCellsContainValue(unsigned int rowIdx, unsigned int colIdx, unsigned int arrIdx, unsigned int cellValue)
+unsigned int tct::TectonicGridComponent::GetNeighbourIdxUp(unsigned int arrIdx)
+{
+	unsigned int const rowIdxUp{ arrIdx / m_Cols - 1 };
+	if (rowIdxUp >= 0 and rowIdxUp < m_Rows)
+	{
+		return arrIdx - m_Cols;
+	}
+	return max::UIN;
+}
+
+unsigned int tct::TectonicGridComponent::GetNeighbourIdxDown(unsigned int arrIdx)
+{
+	unsigned int const rowIdxDown{ arrIdx / m_Cols + 1 };
+	if (rowIdxDown < m_Rows)
+	{
+		return arrIdx + m_Cols;
+	}
+	return max::UIN;
+}
+
+unsigned int tct::TectonicGridComponent::GetNeighbourIdx(direction const& dir, unsigned int arrIdx)
+{
+	if (dir == tct::dir::LEFT)
+	{
+		return GetNeighbourIdxLeft(arrIdx);
+	}
+	else if (dir == tct::dir::RIGHT)
+	{
+		return GetNeighbourIdxRight(arrIdx);
+	}
+	else if (dir == tct::dir::UP)
+	{
+		return GetNeighbourIdxUp(arrIdx);
+	}
+	else if (dir == tct::dir::DOWN)
+	{
+		return GetNeighbourIdxDown(arrIdx);
+	}
+	return max::UIN;
+}
+
+bool tct::TectonicGridComponent::DoAdjecentCellsContainValue(unsigned int arrIdx, unsigned int cellValue)
 {
 	std::unordered_set<unsigned int> tempSet{};
 
-	bool const cellLeft{ IsNeighbourCellHorizontal(tct::dir::LEFT, colIdx) };
-	bool const cellRight{ IsNeighbourCellHorizontal(tct::dir::RIGHT, colIdx) };
-	bool const cellTop{ IsNeighbourCellVertical(tct::dir::UP, rowIdx) };
-	bool const cellBottom{ IsNeighbourCellVertical(tct::dir::DOWN, rowIdx) };
+	unsigned int const cellLeftIdx{ GetNeighbourIdxLeft(arrIdx) };
+	unsigned int const cellRightIdx{ GetNeighbourIdxRight(arrIdx) };
+	unsigned int const cellTopIdx{ GetNeighbourIdxUp(arrIdx) };
+	unsigned int const cellBottomIdx{ GetNeighbourIdxDown(arrIdx) };
 
-	if (cellLeft)
+	if (cellLeftIdx != max::UIN) 
 	{
-		tempSet.insert(m_GridVec[arrIdx - 1]);
+		tempSet.insert(m_GridVec[cellLeftIdx]);
 	}
 
-	if (cellRight)
+	if (cellRightIdx != max::UIN)
 	{
-		tempSet.insert(m_GridVec[arrIdx + 1]);
+		tempSet.insert(m_GridVec[cellRightIdx]);
 	}
 
-	if (cellTop)
+	if (cellTopIdx != max::UIN)
 	{
-		tempSet.insert(m_GridVec[arrIdx - m_Cols]);
+		tempSet.insert(m_GridVec[cellTopIdx]);
 	}
 
-	if (cellBottom)
+	if (cellBottomIdx != max::UIN)
 	{
-		tempSet.insert(m_GridVec[arrIdx + m_Cols]);
+		tempSet.insert(m_GridVec[cellBottomIdx]);
 	}
 
-	if (cellLeft and cellTop)
+	if (cellLeftIdx != max::UIN and cellTopIdx != max::UIN)
 	{
 		tempSet.insert(m_GridVec[arrIdx - 1 - m_Cols]);
 	}
 
-	if (cellLeft and cellBottom)
+	if (cellLeftIdx != max::UIN and cellBottomIdx != max::UIN)
 	{
 		tempSet.insert(m_GridVec[arrIdx - 1 + m_Cols]);
 	}
 
-	if (cellRight and cellTop)
+	if (cellRightIdx != max::UIN and cellTopIdx != max::UIN)
 	{
 		tempSet.insert(m_GridVec[arrIdx + 1 - m_Cols]);
 	}
 
-	if (cellRight and cellBottom)
+	if (cellRightIdx != max::UIN and cellBottomIdx != max::UIN)
 	{
 		tempSet.insert(m_GridVec[arrIdx + 1 + m_Cols]);
 	}
 
 	return tempSet.contains(cellValue);
+}
+
+std::vector<tct::direction> tct::TectonicGridComponent::GetPossibleNeighbourDirections(unsigned int arrIdx)
+{
+	std::vector<direction> possibleDirsVec{};
+	possibleDirsVec.reserve(tct::dir::NR_OF_DIRECTIONS);
+	if (GetNeighbourIdxLeft(arrIdx) != max::UIN)
+	{
+		possibleDirsVec.emplace_back(tct::dir::LEFT);
+	}
+	if (GetNeighbourIdxRight(arrIdx) != max::UIN)
+	{
+		possibleDirsVec.emplace_back(tct::dir::RIGHT);
+	}
+	if (GetNeighbourIdxUp(arrIdx) != max::UIN)
+	{
+		possibleDirsVec.emplace_back(tct::dir::UP);
+	}
+	if (GetNeighbourIdxDown(arrIdx) != max::UIN)
+	{
+		possibleDirsVec.emplace_back(tct::dir::DOWN);
+	}
+	return possibleDirsVec;
+}
+
+std::vector<tct::direction> tct::TectonicGridComponent::GetNeighbourDirectionsWithoutID(unsigned int arrIdx)
+{
+	std::vector<direction> dirWithoutIDVec{};
+	for (direction const& dir : GetPossibleNeighbourDirections(arrIdx))
+	{
+		if (m_RegionIDVec[GetNeighbourIdx(dir, arrIdx)] == max::UIN)
+		{
+			dirWithoutIDVec.emplace_back(dir);
+		}
+	}
+	return dirWithoutIDVec;
 }

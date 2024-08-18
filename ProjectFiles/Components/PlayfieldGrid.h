@@ -6,6 +6,7 @@
 
 #include "Component.h"
 #include "Scene.h"
+#include "Configuration.h"
 
 namespace tct
 {
@@ -30,9 +31,14 @@ namespace tct
 		void FillRegions(amu::Scene* scenePtr);
 		void FillGrid(amu::Scene* scenePtr);
 		std::string_view GetNrFilePath(unsigned int nr);
-		bool IsNeighbourCellHorizontal(std::pair<int, int> const& direction, unsigned int colIdx);
-		bool IsNeighbourCellVertical(std::pair<int, int> const& direction, unsigned int rowIdx);
-		bool DoAdjecentCellsContainValue(unsigned int rowIdx, unsigned int colIdx, unsigned int arrIdx, unsigned int cellValue);
+		unsigned int GetNeighbourIdxLeft(unsigned int arrIdx);
+		unsigned int GetNeighbourIdxRight(unsigned int arrIdx);
+		unsigned int GetNeighbourIdxUp(unsigned int arrIdx);
+		unsigned int GetNeighbourIdxDown(unsigned int arrIdx);
+		unsigned int GetNeighbourIdx(direction const& dir, unsigned int arrIdx);
+		bool DoAdjecentCellsContainValue(unsigned int arrIdx, unsigned int cellValue);
+		std::vector<direction> GetPossibleNeighbourDirections(unsigned int arrIdx);
+		std::vector<direction> GetNeighbourDirectionsWithoutID(unsigned int arrIdx);
 	};
 
 }
