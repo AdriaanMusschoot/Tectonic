@@ -16,11 +16,10 @@ tct::TectonicGridComponent::TectonicGridComponent(amu::GameObject* ownerObjectPt
 	, m_Rows{ rows }
 	, m_Cols{ cols }
 	, m_HighestNumber{ highestNr }
-	, m_GridVec(rows * cols, 0)
 	, m_CellVec(rows * cols)
 {
 	CreateRegions();
-	CreateGameObjects(scenePtr);
+	CreateEmptyCells(scenePtr);
 }
 
 void tct::TectonicGridComponent::CreateRegions()
@@ -77,7 +76,7 @@ void tct::TectonicGridComponent::AssignValues()
 
 }
 
-void tct::TectonicGridComponent::CreateGameObjects(amu::Scene* scenePtr)
+void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 {
 	std::random_device randDev{};
 
@@ -91,15 +90,7 @@ void tct::TectonicGridComponent::CreateGameObjects(amu::Scene* scenePtr)
 		for (unsigned int colIdx{}; colIdx < m_Cols; ++colIdx)
 		{
 			unsigned int const arrIdx{ rowIdx * m_Cols + colIdx };
-			assert(arrIdx < std::size(m_GridVec));
 			
-			unsigned int cellValue{ dist(randDev) };
-			while (DoAdjecentCellsContainValue(arrIdx, cellValue))
-			{
-				cellValue = dist(randDev);
-			} 
-			m_GridVec[arrIdx] = cellValue;
-
 			std::unique_ptr cellUPtr{ std::make_unique<amu::GameObject>() };
 			cellUPtr->AddComponent<amu::TransformComponent>(cellUPtr.get(), glm::vec2{ border + colIdx * sideLength, border + rowIdx * sideLength });
 			cellUPtr->SetParent(GetComponentOwner(), true);
@@ -113,9 +104,79 @@ void tct::TectonicGridComponent::CreateGameObjects(amu::Scene* scenePtr)
 
 			auto* rdrCompPtr{ emptyCellUPtr->AddComponent<amu::RenderComponent>(emptyCellUPtr.get(), tct::img::EMPTY_TILE) };
 			auto dim{ rdrCompPtr->GetSize() };
-
 			rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
+
 			scenePtr->Add(std::move(emptyCellUPtr));
+		}
+	}
+
+	auto* ownerPtr{ GetComponentOwner() };
+	for (unsigned int arrIdx{}; arrIdx < std::size(m_CellVec); ++arrIdx)
+	{
+		assert(arrIdx < ownerPtr->GetChildCount());
+
+		auto* childUPtr{ ownerPtr->GetChildAt(arrIdx) };
+		glm::vec2 const& parentWorldTransform{ childUPtr->GetComponent<amu::TransformComponent>()->GetWorldPosition() };
+
+		if (unsigned const int leftIdx{ GetNeighbourIdxLeft(arrIdx) }; leftIdx != max::UIN)
+		{
+			if (m_CellVec[arrIdx].RegionID != m_CellVec[leftIdx].RegionID)
+			{
+				std::unique_ptr verticalBeamLeftUPtr{ std::make_unique<amu::GameObject>() };
+				verticalBeamLeftUPtr->AddComponent<amu::TransformComponent>(verticalBeamLeftUPtr.get(), glm::vec2{ parentWorldTransform.x - border + 1, parentWorldTransform.y });
+				verticalBeamLeftUPtr->SetParent(childUPtr, true);
+
+				auto* rdrCompPtr{ verticalBeamLeftUPtr->AddComponent<amu::RenderComponent>(verticalBeamLeftUPtr.get(), tct::img::VERTICAL_BAR) };
+				auto dim{ rdrCompPtr->GetSize() };
+				rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
+
+				scenePtr->Add(std::move(verticalBeamLeftUPtr));
+			}
+		}
+		if (unsigned const int rightIdx{ GetNeighbourIdxRight(arrIdx) }; rightIdx != max::UIN)
+		{
+			if (m_CellVec[arrIdx].RegionID != m_CellVec[rightIdx].RegionID)
+			{
+				std::unique_ptr verticalBeamLeftUPtr{ std::make_unique<amu::GameObject>() };
+				verticalBeamLeftUPtr->AddComponent<amu::TransformComponent>(verticalBeamLeftUPtr.get(), glm::vec2{ parentWorldTransform.x + border - 1, parentWorldTransform.y });
+				verticalBeamLeftUPtr->SetParent(childUPtr, true);
+
+				auto* rdrCompPtr{ verticalBeamLeftUPtr->AddComponent<amu::RenderComponent>(verticalBeamLeftUPtr.get(), tct::img::VERTICAL_BAR) };
+				auto dim{ rdrCompPtr->GetSize() };
+				rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
+
+				scenePtr->Add(std::move(verticalBeamLeftUPtr));
+			}
+		}
+		if (unsigned const int topIdx{ GetNeighbourIdxUp(arrIdx) }; topIdx != max::UIN)
+		{
+			if (m_CellVec[arrIdx].RegionID != m_CellVec[topIdx].RegionID)
+			{
+				std::unique_ptr horizontalBeamLeftUPtr{ std::make_unique<amu::GameObject>() };
+				horizontalBeamLeftUPtr->AddComponent<amu::TransformComponent>(horizontalBeamLeftUPtr.get(), glm::vec2{ parentWorldTransform.x, parentWorldTransform.y - border + 1 });
+				horizontalBeamLeftUPtr->SetParent(childUPtr, true);
+
+				auto* rdrCompPtr{ horizontalBeamLeftUPtr->AddComponent<amu::RenderComponent>(horizontalBeamLeftUPtr.get(), tct::img::HORIZONTAL_BAR) };
+				auto dim{ rdrCompPtr->GetSize() };
+				rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
+
+				scenePtr->Add(std::move(horizontalBeamLeftUPtr));
+			}
+		}
+		else if (unsigned const int bottomIdx{ GetNeighbourIdxDown(arrIdx) }; bottomIdx != max::UIN)
+		{
+			if (m_CellVec[arrIdx].RegionID != m_CellVec[bottomIdx].RegionID)
+			{ 
+				std::unique_ptr horizontalBeamLeftUPtr{ std::make_unique<amu::GameObject>() };
+				horizontalBeamLeftUPtr->AddComponent<amu::TransformComponent>(horizontalBeamLeftUPtr.get(), glm::vec2{ parentWorldTransform.x, parentWorldTransform.y + border - 1 });
+				horizontalBeamLeftUPtr->SetParent(childUPtr, true);
+
+				auto* rdrCompPtr{ horizontalBeamLeftUPtr->AddComponent<amu::RenderComponent>(horizontalBeamLeftUPtr.get(), tct::img::HORIZONTAL_BAR) };
+				auto dim{ rdrCompPtr->GetSize() };
+				rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
+
+				scenePtr->Add(std::move(horizontalBeamLeftUPtr));
+			}
 		}
 	}
 }
@@ -192,42 +253,42 @@ bool tct::TectonicGridComponent::DoAdjecentCellsContainValue(unsigned int arrIdx
 
 	if (cellLeftIdx != max::UIN) 
 	{
-		tempSet.insert(m_GridVec[cellLeftIdx]);
+		tempSet.insert(m_CellVec[cellLeftIdx].Value);
 	}
 
 	if (cellRightIdx != max::UIN)
 	{
-		tempSet.insert(m_GridVec[cellRightIdx]);
+		tempSet.insert(m_CellVec[cellRightIdx].Value);
 	}
 
 	if (cellTopIdx != max::UIN)
 	{
-		tempSet.insert(m_GridVec[cellTopIdx]);
+		tempSet.insert(m_CellVec[cellTopIdx].Value);
 	}
 
 	if (cellBottomIdx != max::UIN)
 	{
-		tempSet.insert(m_GridVec[cellBottomIdx]);
+		tempSet.insert(m_CellVec[cellBottomIdx].Value);
 	}
 
 	if (cellLeftIdx != max::UIN and cellTopIdx != max::UIN)
 	{
-		tempSet.insert(m_GridVec[arrIdx - 1 - m_Cols]);
+		tempSet.insert(m_CellVec[arrIdx - 1 - m_Cols].Value);
 	}
 
 	if (cellLeftIdx != max::UIN and cellBottomIdx != max::UIN)
 	{
-		tempSet.insert(m_GridVec[arrIdx - 1 + m_Cols]);
+		tempSet.insert(m_CellVec[arrIdx - 1 + m_Cols].Value);
 	}
 
 	if (cellRightIdx != max::UIN and cellTopIdx != max::UIN)
 	{
-		tempSet.insert(m_GridVec[arrIdx + 1 - m_Cols]);
+		tempSet.insert(m_CellVec[arrIdx + 1 - m_Cols].Value);
 	}
 
 	if (cellRightIdx != max::UIN and cellBottomIdx != max::UIN)
 	{
-		tempSet.insert(m_GridVec[arrIdx + 1 + m_Cols]);
+		tempSet.insert(m_CellVec[arrIdx + 1 + m_Cols].Value);
 	}
 
 	return tempSet.contains(cellValue);

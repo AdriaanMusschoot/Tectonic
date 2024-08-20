@@ -32,12 +32,11 @@ namespace tct
 		unsigned int const m_Rows{};
 		unsigned int const m_Cols{};
 		unsigned int const m_HighestNumber{};
-		std::vector<unsigned int> m_GridVec{};
 		std::vector<CellData> m_CellVec{};
 
 		void CreateRegions();
 		void AssignValues();
-		void CreateGameObjects(amu::Scene* scenePtr);
+		void CreateEmptyCells(amu::Scene* scenePtr);
 		unsigned int GetNeighbourIdxLeft(unsigned int arrIdx);
 		unsigned int GetNeighbourIdxRight(unsigned int arrIdx);
 		unsigned int GetNeighbourIdxUp(unsigned int arrIdx);
