@@ -11,11 +11,14 @@ namespace tct
 
 	namespace img
 	{
+
 		static std::string const NR1{ "1.png" };
 		static std::string const NR2{ "2.png" };
 		static std::string const NR3{ "3.png" };
 		static std::string const NR4{ "4.png" };
 		static std::string const NR5{ "5.png" };
+		static std::string const EMPTY_TILE{ "TileEmpty.png" };
+
 	}
 
 	namespace fnt

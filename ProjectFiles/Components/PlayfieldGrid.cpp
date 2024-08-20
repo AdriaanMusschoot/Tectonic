@@ -17,34 +17,35 @@ tct::TectonicGridComponent::TectonicGridComponent(amu::GameObject* ownerObjectPt
 	, m_Cols{ cols }
 	, m_HighestNumber{ highestNr }
 	, m_GridVec(rows * cols, 0)
-	, m_RegionIDVec(rows * cols, std::make_pair(max::UIN, max::UIN))
+	, m_CellVec(rows * cols)
 {
-	FillRegions(scenePtr);
-	FillGrid(scenePtr);
+	CreateRegions();
+	CreateGameObjects(scenePtr);
 }
 
-void tct::TectonicGridComponent::FillRegions(amu::Scene*)
+void tct::TectonicGridComponent::CreateRegions()
 {
 	std::random_device randDev{};
 	std::mt19937 rng(randDev());
+
 	std::vector<unsigned int> nrToGenerateVec{};
 	nrToGenerateVec.reserve(m_HighestNumber - 1);
 	for (unsigned int idx{}; idx < m_HighestNumber; ++idx)
 	{
 		nrToGenerateVec.emplace_back(idx);
 	}
+
 	std::discrete_distribution<unsigned int> biasedDist{ nrToGenerateVec.begin(), nrToGenerateVec.end() };
 
 	unsigned int ID{};
 
-	for (unsigned int arrIdx{}; arrIdx < std::size(m_RegionIDVec); ++arrIdx)
+	for (unsigned int arrIdx{}; arrIdx < std::size(m_CellVec); ++arrIdx)
 	{
-		if (m_RegionIDVec[arrIdx].first == max::UIN)
+		if (m_CellVec[arrIdx].RegionID == max::UIN)
 		{
 			unsigned int const regionSize{ biasedDist(rng) + 1 };
-			std::cout << regionSize << "\n";
-			m_RegionIDVec[arrIdx].first = ID;
-			m_RegionIDVec[arrIdx].second = regionSize;
+			m_CellVec[arrIdx].RegionID = ID;
+			m_CellVec[arrIdx].RegionSize = regionSize;
 
 			unsigned int currentArrIdx{ arrIdx };
 
@@ -58,8 +59,8 @@ void tct::TectonicGridComponent::FillRegions(amu::Scene*)
 					std::uniform_int_distribution<unsigned int> distDirs{ 0, nrNeighbours - 1 };
 					direction const& dir{ possibleNeighbourVec[distDirs(rng)] };
 					currentArrIdx = GetNeighbourIdx(dir, currentArrIdx);
-					m_RegionIDVec[currentArrIdx].first = ID;
-					m_RegionIDVec[currentArrIdx].second = regionSize;
+					m_CellVec[currentArrIdx].RegionID = ID;
+					m_CellVec[currentArrIdx].RegionSize = regionSize;
 				}
 				else
 				{
@@ -71,14 +72,19 @@ void tct::TectonicGridComponent::FillRegions(amu::Scene*)
 	}
 }
 
-void tct::TectonicGridComponent::FillGrid(amu::Scene* scenePtr)
+void tct::TectonicGridComponent::AssignValues()
+{
+
+}
+
+void tct::TectonicGridComponent::CreateGameObjects(amu::Scene* scenePtr)
 {
 	std::random_device randDev{};
 
 	std::uniform_int_distribution<unsigned int> dist{ 1, m_HighestNumber };
 
-	constexpr unsigned int border{ 50 };
-	constexpr unsigned int sideLength{ 100 };
+	unsigned int constexpr border{ 50 };
+	unsigned int constexpr sideLength{ 100 };
 
 	for (unsigned int rowIdx{}; rowIdx < m_Rows; ++rowIdx)
 	{
@@ -98,9 +104,18 @@ void tct::TectonicGridComponent::FillGrid(amu::Scene* scenePtr)
 			cellUPtr->AddComponent<amu::TransformComponent>(cellUPtr.get(), glm::vec2{ border + colIdx * sideLength, border + rowIdx * sideLength });
 			cellUPtr->SetParent(GetComponentOwner(), true);
 
-			cellUPtr->AddComponent<amu::TextComponent>(cellUPtr.get(), std::to_string(m_RegionIDVec[arrIdx].second), fnt::LINGUA, 20);
+			cellUPtr->AddComponent<amu::TextComponent>(cellUPtr.get(), std::to_string(m_CellVec[arrIdx].RegionID), fnt::LINGUA, 20);
+			auto* cellPtr{ scenePtr->Add(std::move(cellUPtr)) };
 
-			scenePtr->Add(std::move(cellUPtr));
+			std::unique_ptr emptyCellUPtr{ std::make_unique<amu::GameObject>() };
+			emptyCellUPtr->AddComponent<amu::TransformComponent>(emptyCellUPtr.get(), glm::vec2{ border + colIdx * sideLength, border + rowIdx * sideLength });
+			emptyCellUPtr->SetParent(cellPtr, true);
+
+			auto* rdrCompPtr{ emptyCellUPtr->AddComponent<amu::RenderComponent>(emptyCellUPtr.get(), tct::img::EMPTY_TILE) };
+			auto dim{ rdrCompPtr->GetSize() };
+
+			rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
+			scenePtr->Add(std::move(emptyCellUPtr));
 		}
 	}
 }
@@ -246,7 +261,7 @@ std::vector<tct::direction> tct::TectonicGridComponent::GetNeighbourDirectionsWi
 	std::vector<direction> dirWithoutIDVec{};
 	for (direction const& dir : GetPossibleNeighbourDirections(arrIdx))
 	{
-		if (m_RegionIDVec[GetNeighbourIdx(dir, arrIdx)].first == max::UIN)
+		if (m_CellVec[GetNeighbourIdx(dir, arrIdx)].RegionID == max::UIN)
 		{
 			dirWithoutIDVec.emplace_back(dir);
 		}

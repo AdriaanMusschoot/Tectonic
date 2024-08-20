@@ -14,6 +14,13 @@ namespace tct
 	class TectonicGridComponent final : public amu::Component
 	{
 	public:
+		struct CellData
+		{
+			unsigned int RegionID{ max::UIN };
+			unsigned int RegionSize{ max::UIN };
+			unsigned int Value{ max::UIN };
+		};
+
 		TectonicGridComponent(amu::GameObject* ownerObjectPtr, amu::Scene* scenePtr, unsigned int rows, unsigned int cols, unsigned int highestNr);
 		virtual ~TectonicGridComponent() override = default;
 
@@ -26,10 +33,11 @@ namespace tct
 		unsigned int const m_Cols{};
 		unsigned int const m_HighestNumber{};
 		std::vector<unsigned int> m_GridVec{};
-		std::vector<std::pair<unsigned int, unsigned int>> m_RegionIDVec{};
+		std::vector<CellData> m_CellVec{};
 
-		void FillRegions(amu::Scene* scenePtr);
-		void FillGrid(amu::Scene* scenePtr);
+		void CreateRegions();
+		void AssignValues();
+		void CreateGameObjects(amu::Scene* scenePtr);
 		unsigned int GetNeighbourIdxLeft(unsigned int arrIdx);
 		unsigned int GetNeighbourIdxRight(unsigned int arrIdx);
 		unsigned int GetNeighbourIdxUp(unsigned int arrIdx);
