@@ -26,11 +26,10 @@ namespace tct
 		unsigned int const m_Cols{};
 		unsigned int const m_HighestNumber{};
 		std::vector<unsigned int> m_GridVec{};
-		std::vector<unsigned int> m_RegionIDVec{};
+		std::vector<std::pair<unsigned int, unsigned int>> m_RegionIDVec{};
 
 		void FillRegions(amu::Scene* scenePtr);
 		void FillGrid(amu::Scene* scenePtr);
-		std::string_view GetNrFilePath(unsigned int nr);
 		unsigned int GetNeighbourIdxLeft(unsigned int arrIdx);
 		unsigned int GetNeighbourIdxRight(unsigned int arrIdx);
 		unsigned int GetNeighbourIdxUp(unsigned int arrIdx);
