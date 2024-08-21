@@ -21,6 +21,13 @@ namespace tct
 			unsigned int Value{ max::UIN };
 		};
 
+		enum class Orientation
+		{
+			Horizontal,
+			Vertical,
+			Diagonal
+		};
+
 		TectonicGridComponent(amu::GameObject* ownerObjectPtr, amu::Scene* scenePtr, unsigned int rows, unsigned int cols, unsigned int highestNr);
 		virtual ~TectonicGridComponent() override = default;
 
@@ -45,6 +52,7 @@ namespace tct
 		bool DoAdjecentCellsContainValue(unsigned int arrIdx, unsigned int cellValue);
 		std::vector<direction> GetPossibleNeighbourDirections(unsigned int arrIdx);
 		std::vector<direction> GetNeighbourDirectionsWithoutID(unsigned int arrIdx);
+		void SpawnBar(Orientation const& orientationBar, amu::Scene* scenePtr, amu::GameObject* parentPtr, glm::vec2 const& offsetToParent);
 	};
 
 }

@@ -82,8 +82,9 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 
 	std::uniform_int_distribution<unsigned int> dist{ 1, m_HighestNumber };
 
-	unsigned int constexpr border{ 50 };
-	unsigned int constexpr sideLength{ 100 };
+	int constexpr border{ 50 };
+	int constexpr cellLength{ 100 };
+	int constexpr regionBorderThickness{ 3 };
 
 	for (unsigned int rowIdx{}; rowIdx < m_Rows; ++rowIdx)
 	{
@@ -92,14 +93,14 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 			unsigned int const arrIdx{ rowIdx * m_Cols + colIdx };
 			
 			std::unique_ptr cellUPtr{ std::make_unique<amu::GameObject>() };
-			cellUPtr->AddComponent<amu::TransformComponent>(cellUPtr.get(), glm::vec2{ border + colIdx * sideLength, border + rowIdx * sideLength });
+			cellUPtr->AddComponent<amu::TransformComponent>(cellUPtr.get(), glm::vec2{ border + colIdx * cellLength, border + rowIdx * cellLength });
 			cellUPtr->SetParent(GetComponentOwner(), true);
 
 			cellUPtr->AddComponent<amu::TextComponent>(cellUPtr.get(), std::to_string(m_CellVec[arrIdx].RegionID), fnt::LINGUA, 20);
 			auto* cellPtr{ scenePtr->Add(std::move(cellUPtr)) };
 
 			std::unique_ptr emptyCellUPtr{ std::make_unique<amu::GameObject>() };
-			emptyCellUPtr->AddComponent<amu::TransformComponent>(emptyCellUPtr.get(), glm::vec2{ border + colIdx * sideLength, border + rowIdx * sideLength });
+			emptyCellUPtr->AddComponent<amu::TransformComponent>(emptyCellUPtr.get(), glm::vec2{ border + colIdx * cellLength, border + rowIdx * cellLength });
 			emptyCellUPtr->SetParent(cellPtr, true);
 
 			auto* rdrCompPtr{ emptyCellUPtr->AddComponent<amu::RenderComponent>(emptyCellUPtr.get(), tct::img::EMPTY_TILE) };
@@ -116,67 +117,50 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 		assert(arrIdx < ownerPtr->GetChildCount());
 
 		auto* childUPtr{ ownerPtr->GetChildAt(arrIdx) };
-		glm::vec2 const& parentWorldTransform{ childUPtr->GetComponent<amu::TransformComponent>()->GetWorldPosition() };
 
 		if (unsigned const int leftIdx{ GetNeighbourIdxLeft(arrIdx) }; leftIdx != max::UIN)
 		{
 			if (m_CellVec[arrIdx].RegionID != m_CellVec[leftIdx].RegionID)
 			{
-				std::unique_ptr verticalBeamLeftUPtr{ std::make_unique<amu::GameObject>() };
-				verticalBeamLeftUPtr->AddComponent<amu::TransformComponent>(verticalBeamLeftUPtr.get(), glm::vec2{ parentWorldTransform.x - border + 1, parentWorldTransform.y });
-				verticalBeamLeftUPtr->SetParent(childUPtr, true);
-
-				auto* rdrCompPtr{ verticalBeamLeftUPtr->AddComponent<amu::RenderComponent>(verticalBeamLeftUPtr.get(), tct::img::VERTICAL_BAR) };
-				auto dim{ rdrCompPtr->GetSize() };
-				rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
-
-				scenePtr->Add(std::move(verticalBeamLeftUPtr));
+				SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ -cellLength / 2 + regionBorderThickness, 0 });
 			}
+		}
+		else
+		{
+			SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ -cellLength / 2 + regionBorderThickness, 0 });
 		}
 		if (unsigned const int rightIdx{ GetNeighbourIdxRight(arrIdx) }; rightIdx != max::UIN)
 		{
 			if (m_CellVec[arrIdx].RegionID != m_CellVec[rightIdx].RegionID)
 			{
-				std::unique_ptr verticalBeamLeftUPtr{ std::make_unique<amu::GameObject>() };
-				verticalBeamLeftUPtr->AddComponent<amu::TransformComponent>(verticalBeamLeftUPtr.get(), glm::vec2{ parentWorldTransform.x + border - 1, parentWorldTransform.y });
-				verticalBeamLeftUPtr->SetParent(childUPtr, true);
-
-				auto* rdrCompPtr{ verticalBeamLeftUPtr->AddComponent<amu::RenderComponent>(verticalBeamLeftUPtr.get(), tct::img::VERTICAL_BAR) };
-				auto dim{ rdrCompPtr->GetSize() };
-				rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
-
-				scenePtr->Add(std::move(verticalBeamLeftUPtr));
+				SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ cellLength / 2 - regionBorderThickness, 0 });
 			}
+		}
+		else
+		{
+			SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ cellLength / 2 - regionBorderThickness, 0 });
 		}
 		if (unsigned const int topIdx{ GetNeighbourIdxUp(arrIdx) }; topIdx != max::UIN)
 		{
 			if (m_CellVec[arrIdx].RegionID != m_CellVec[topIdx].RegionID)
 			{
-				std::unique_ptr horizontalBeamLeftUPtr{ std::make_unique<amu::GameObject>() };
-				horizontalBeamLeftUPtr->AddComponent<amu::TransformComponent>(horizontalBeamLeftUPtr.get(), glm::vec2{ parentWorldTransform.x, parentWorldTransform.y - border + 1 });
-				horizontalBeamLeftUPtr->SetParent(childUPtr, true);
-
-				auto* rdrCompPtr{ horizontalBeamLeftUPtr->AddComponent<amu::RenderComponent>(horizontalBeamLeftUPtr.get(), tct::img::HORIZONTAL_BAR) };
-				auto dim{ rdrCompPtr->GetSize() };
-				rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
-
-				scenePtr->Add(std::move(horizontalBeamLeftUPtr));
+				SpawnBar(Orientation::Horizontal, scenePtr, childUPtr, glm::vec2{ 0, -cellLength / 2 + regionBorderThickness });
 			}
 		}
-		else if (unsigned const int bottomIdx{ GetNeighbourIdxDown(arrIdx) }; bottomIdx != max::UIN)
+		else
+		{
+			SpawnBar(Orientation::Horizontal, scenePtr, childUPtr, glm::vec2{ 0, -cellLength / 2 + regionBorderThickness });
+		}
+		if (unsigned const int bottomIdx{ GetNeighbourIdxDown(arrIdx) }; bottomIdx != max::UIN)
 		{
 			if (m_CellVec[arrIdx].RegionID != m_CellVec[bottomIdx].RegionID)
 			{ 
-				std::unique_ptr horizontalBeamLeftUPtr{ std::make_unique<amu::GameObject>() };
-				horizontalBeamLeftUPtr->AddComponent<amu::TransformComponent>(horizontalBeamLeftUPtr.get(), glm::vec2{ parentWorldTransform.x, parentWorldTransform.y + border - 1 });
-				horizontalBeamLeftUPtr->SetParent(childUPtr, true);
-
-				auto* rdrCompPtr{ horizontalBeamLeftUPtr->AddComponent<amu::RenderComponent>(horizontalBeamLeftUPtr.get(), tct::img::HORIZONTAL_BAR) };
-				auto dim{ rdrCompPtr->GetSize() };
-				rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
-
-				scenePtr->Add(std::move(horizontalBeamLeftUPtr));
+				SpawnBar(Orientation::Horizontal, scenePtr, childUPtr, glm::vec2{ 0, cellLength / 2 - regionBorderThickness});
 			}
+		}
+		else
+		{
+			SpawnBar(Orientation::Horizontal, scenePtr, childUPtr, glm::vec2{ 0, cellLength / 2 - regionBorderThickness });
 		}
 	}
 }
@@ -328,4 +312,28 @@ std::vector<tct::direction> tct::TectonicGridComponent::GetNeighbourDirectionsWi
 		}
 	}
 	return dirWithoutIDVec;
+}
+
+void tct::TectonicGridComponent::SpawnBar(Orientation const& orientationBar, amu::Scene* scenePtr, amu::GameObject* parentPtr, glm::vec2 const& offsetToParent)
+{
+	glm::vec2 const& parentWorldTransform{ parentPtr->GetComponent<amu::TransformComponent>()->GetWorldPosition() };
+
+	std::unique_ptr beamUPtr{ std::make_unique<amu::GameObject>() };
+	beamUPtr->AddComponent<amu::TransformComponent>(beamUPtr.get(), glm::vec2{ parentWorldTransform.x + offsetToParent.x, parentWorldTransform.y + offsetToParent.y });
+	beamUPtr->SetParent(parentPtr, true);
+	std::cout << beamUPtr->GetComponent<amu::TransformComponent>()->GetWorldPosition().y << "\n";
+	if (orientationBar == Orientation::Horizontal)
+	{
+		beamUPtr->AddComponent<amu::RenderComponent>(beamUPtr.get(), tct::img::HORIZONTAL_BAR);
+	}
+	else if (orientationBar == Orientation::Vertical)
+	{
+		beamUPtr->AddComponent<amu::RenderComponent>(beamUPtr.get(), tct::img::VERTICAL_BAR);
+	}
+
+	amu::RenderComponent* rdrCompPtr{ beamUPtr->GetComponent<amu::RenderComponent>() };
+	auto dim{ rdrCompPtr->GetSize() };
+	rdrCompPtr->SetSourceRectangle(SDL_Rect{ 0, 0, dim.x, dim.y });
+
+	scenePtr->Add(std::move(beamUPtr));
 }
