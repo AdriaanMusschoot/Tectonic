@@ -128,6 +128,7 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 		else
 		{
 			SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ -cellLength / 2 + regionBorderThickness, 0 });
+			SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ -cellLength / 2 + regionBorderThickness * 2, 0 });
 		}
 		if (unsigned const int rightIdx{ GetNeighbourIdxRight(arrIdx) }; rightIdx != max::UIN)
 		{
@@ -139,6 +140,7 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 		else
 		{
 			SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ cellLength / 2 - regionBorderThickness, 0 });
+			SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ cellLength / 2 - regionBorderThickness * 2, 0 });
 		}
 		if (unsigned const int topIdx{ GetNeighbourIdxUp(arrIdx) }; topIdx != max::UIN)
 		{
@@ -150,6 +152,7 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 		else
 		{
 			SpawnBar(Orientation::Horizontal, scenePtr, childUPtr, glm::vec2{ 0, -cellLength / 2 + regionBorderThickness });
+			SpawnBar(Orientation::Horizontal, scenePtr, childUPtr, glm::vec2{ 0, -cellLength / 2 + regionBorderThickness * 2 });
 		}
 		if (unsigned const int bottomIdx{ GetNeighbourIdxDown(arrIdx) }; bottomIdx != max::UIN)
 		{
@@ -161,6 +164,7 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 		else
 		{
 			SpawnBar(Orientation::Horizontal, scenePtr, childUPtr, glm::vec2{ 0, cellLength / 2 - regionBorderThickness });
+			SpawnBar(Orientation::Horizontal, scenePtr, childUPtr, glm::vec2{ 0, cellLength / 2 - regionBorderThickness * 2 });
 		}
 	}
 }
