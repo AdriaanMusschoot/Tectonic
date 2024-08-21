@@ -24,7 +24,7 @@ int main(int, char*[])
 	if(not fs::exists(data_location))
 		data_location = "../Resources/";
 
-	amu::Amugen engine(data_location, "Tectonic", 1000, 800);
+	amu::Amugen engine(data_location, "Tectonic", 1000, 1000);
 
 	auto& sm{ amu::SceneManager::GetInstance() };
 
