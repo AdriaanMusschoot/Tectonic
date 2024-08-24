@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <numeric>
+#include <vector>
 
 namespace tct
 {
@@ -45,6 +46,75 @@ namespace tct
 	{
 
 		static unsigned int constexpr UIN{ std::numeric_limits<unsigned int>::max() };
+
+	}
+
+	namespace shapes
+	{
+
+		//first int signifies rows second signifies columns
+		namespace one
+		{
+
+			static std::vector<std::pair<int, int>> const SHAPE{ { 0, 0 } };
+
+		}
+
+		namespace two
+		{
+
+			static std::vector<std::pair<int, int>> const RIGHT{ { 0, 0 }, { 1, 0 } };
+			
+		}
+
+		namespace three
+		{
+
+			static std::vector<std::pair<int, int>> const STRAIGHT_RIGHT{ { 0, 0 } , { 1, 0 }, { 2, 0 } };
+
+			static std::vector<std::pair<int, int>> const ANGLED_RIGHT{ { 0, 0 }, { 1, 0 }, { 1, 1 } };
+
+		}
+
+		namespace four
+		{
+
+			static std::vector<std::pair<int, int>> const STRAIGHT_RIGHT{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 3, 0 } };
+
+			static std::vector<std::pair<int, int>> const T_RIGHT{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 1, 1 } };
+
+			static std::vector<std::pair<int, int>> const L_RIGHT{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 2, 1 } };
+
+			static std::vector<std::pair<int, int>> const LIGHTNING_RIGHT{ { 0, 0 }, { 1, 0 }, { 1, 1 }, { 2, 1 }};
+
+			static std::vector<std::pair<int, int>> const SQUARE_RIGHT{ { 0, 0 }, { 1, 0 }, { 0, 1 }, { 1, 1 } };
+
+		}
+
+		namespace five
+		{
+
+			static std::vector<std::pair<int, int>> const STRAIGHT_RIGHT{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 0 } };
+
+			static std::vector<std::pair<int, int>> const T_RIGHT{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 1, 1 }, { 1, 2 } };
+
+			static std::vector<std::pair<int, int>> const L_RIGHT{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 3, 0 }, { 3, 1 } };
+
+			static std::vector<std::pair<int, int>> const LIGHTNING_RIGHT{ { 0, 0 }, { 1, 0 }, { 1, 1 }, { 2, 1 }, { 3, 1 } };
+
+			static std::vector<std::pair<int, int>> const SQUARE_RIGHT{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 0, 1 }, { 1, 1 } };
+
+			static std::vector<std::pair<int, int>> const W_RIGHT{ { 0, 0 }, { 1, 0 }, { 1, 1 }, { 2, 1 }, { 2, 2 } };
+
+			static std::vector<std::pair<int, int>> const S_RIGHT{ { 0, 0 }, { 1, 0 }, { 1, 1 }, { 1, 2 }, { 2, 2 } };
+
+			static std::vector<std::pair<int, int>> const R_RIGHT{ { 0, 0 }, { 1, 0 }, { 1, 1 }, { 1, 2 }, { 2, 1 } };
+
+			static std::vector<std::pair<int, int>> const X_RIGHT{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 1, -1 }, { 1, 1 } };
+
+			static std::vector<std::pair<int, int>> const SMALL_T_RIGHT{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 3, 0 }, { 2, 1 } };
+
+		}
 
 	}
 
