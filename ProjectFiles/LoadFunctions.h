@@ -5,7 +5,10 @@
 
 namespace tct
 {
+
 	void LoadMainScene(amu::Scene* scenePtr);
+
+
 }
 
 #endif //TCT_LOAD_FUNCTION
