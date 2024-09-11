@@ -42,10 +42,10 @@ namespace tct
 
 	}
 
-	namespace max
+	namespace error
 	{
 
-		static unsigned int constexpr UIN{ std::numeric_limits<unsigned int>::max() };
+		static int constexpr IN{ -1 };
 
 	}
 

@@ -16,9 +16,9 @@ namespace tct
 	public:
 		struct CellData
 		{
-			unsigned int RegionID{ max::UIN };
-			unsigned int RegionSize{ max::UIN };
-			unsigned int Value{ max::UIN };
+			int RegionID{ error::IN };
+			int RegionSize{ error::IN };
+			int Value{ error::IN };
 		};
 
 		enum class Orientation
@@ -28,30 +28,31 @@ namespace tct
 			Diagonal
 		};
 
-		TectonicGridComponent(amu::GameObject* ownerObjectPtr, amu::Scene* scenePtr, unsigned int rows, unsigned int cols, unsigned int highestNr);
+		TectonicGridComponent(amu::GameObject* ownerObjectPtr, amu::Scene* scenePtr, int rows, int cols, int highestNr);
 		virtual ~TectonicGridComponent() override = default;
 
 		TectonicGridComponent(TectonicGridComponent const&) = delete;
 		TectonicGridComponent(TectonicGridComponent&&) = delete;
 		TectonicGridComponent& operator=(TectonicGridComponent const&) = delete;
 		TectonicGridComponent& operator=(TectonicGridComponent&&) = delete;
+
 	private:
-		unsigned int const m_Rows{};
-		unsigned int const m_Cols{};
-		unsigned int const m_HighestNumber{};
+		int const m_Rows{};
+		int const m_Cols{};
+		int const m_HighestNumber{};
 		std::vector<CellData> m_CellVec{};
 
 		void CreateRegions();
 		void AssignValues();
 		void CreateEmptyCells(amu::Scene* scenePtr);
-		unsigned int GetNeighbourIdxLeft(unsigned int arrIdx);
-		unsigned int GetNeighbourIdxRight(unsigned int arrIdx);
-		unsigned int GetNeighbourIdxUp(unsigned int arrIdx);
-		unsigned int GetNeighbourIdxDown(unsigned int arrIdx);
-		unsigned int GetNeighbourIdx(direction const& dir, unsigned int arrIdx);
-		bool DoAdjecentCellsContainValue(unsigned int arrIdx, unsigned int cellValue);
-		std::vector<direction> GetPossibleNeighbourDirections(unsigned int arrIdx);
-		std::vector<direction> GetNeighbourDirectionsWithoutID(unsigned int arrIdx);
+		int GetNeighbourIdxLeft(int arrIdx);
+		int GetNeighbourIdxRight(int arrIdx);
+		int GetNeighbourIdxUp(int arrIdx);
+		int GetNeighbourIdxDown(int arrIdx);
+		int GetNeighbourIdx(direction const& dir, int arrIdx);
+		bool DoAdjecentCellsContainValue(int arrIdx, int cellValue);
+		std::vector<direction> GetPossibleNeighbourDirections(int arrIdx);
+		std::vector<direction> GetNeighbourDirectionsWithoutID(int arrIdx);
 		void SpawnBar(Orientation const& orientationBar, amu::Scene* scenePtr, amu::GameObject* parentPtr, glm::vec2 const& offsetToParent);
 	};
 

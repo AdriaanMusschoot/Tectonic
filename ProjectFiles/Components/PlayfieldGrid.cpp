@@ -11,7 +11,7 @@
 
 #include "Configuration.h"
 
-tct::TectonicGridComponent::TectonicGridComponent(amu::GameObject* ownerObjectPtr, amu::Scene* scenePtr, unsigned int rows, unsigned int cols, unsigned int highestNr)
+tct::TectonicGridComponent::TectonicGridComponent(amu::GameObject* ownerObjectPtr, amu::Scene* scenePtr, int rows, int cols, int highestNr)
 	: Component(ownerObjectPtr)
 	, m_Rows{ rows }
 	, m_Cols{ cols }
@@ -27,35 +27,35 @@ void tct::TectonicGridComponent::CreateRegions()
 	std::random_device randDev{};
 	std::mt19937 rng(randDev());
 
-	std::vector<unsigned int> nrToGenerateVec{};
+	std::vector<int> nrToGenerateVec{};
 	nrToGenerateVec.reserve(m_HighestNumber - 1);
-	for (unsigned int idx{}; idx < m_HighestNumber; ++idx)
+	for (int idx{}; idx < m_HighestNumber; ++idx)
 	{
 		nrToGenerateVec.emplace_back(idx);
 	}
 
-	std::discrete_distribution<unsigned int> biasedDist{ nrToGenerateVec.begin(), nrToGenerateVec.end() };
+	std::discrete_distribution<int> biasedDist{ nrToGenerateVec.begin(), nrToGenerateVec.end() };
 
-	unsigned int ID{};
+	int ID{};
 
-	for (unsigned int arrIdx{}; arrIdx < std::size(m_CellVec); ++arrIdx)
+	for (int arrIdx{}; arrIdx < std::size(m_CellVec); ++arrIdx)
 	{
-		if (m_CellVec[arrIdx].RegionID == max::UIN)
+		if (m_CellVec[arrIdx].RegionID == error::IN)
 		{
-			unsigned int const regionSize{ biasedDist(rng) + 1 };
+			int const regionSize{ biasedDist(rng) + 1 };
 			m_CellVec[arrIdx].RegionID = ID;
 			m_CellVec[arrIdx].RegionSize = regionSize;
 
-			unsigned int currentArrIdx{ arrIdx };
+			int currentArrIdx{ arrIdx };
 
-			for (unsigned int regionIdx{ 1 }; regionIdx < regionSize; ++regionIdx)
+			for (int regionIdx{ 1 }; regionIdx < regionSize; ++regionIdx)
 			{
 				std::vector<direction> const possibleNeighbourVec{ GetNeighbourDirectionsWithoutID(currentArrIdx) };
-				unsigned int const nrNeighbours{ static_cast<unsigned int>(std::size(possibleNeighbourVec)) };
+				int const nrNeighbours{ static_cast<int>(std::size(possibleNeighbourVec)) };
 
 				if (nrNeighbours > 0)
 				{
-					std::uniform_int_distribution<unsigned int> distDirs{ 0, nrNeighbours - 1 };
+					std::uniform_int_distribution<int> distDirs{ 0, nrNeighbours - 1 };
 					direction const& dir{ possibleNeighbourVec[distDirs(rng)] };
 					currentArrIdx = GetNeighbourIdx(dir, currentArrIdx);
 					m_CellVec[currentArrIdx].RegionID = ID;
@@ -80,17 +80,17 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 {
 	std::random_device randDev{};
 
-	std::uniform_int_distribution<unsigned int> dist{ 1, m_HighestNumber };
+	std::uniform_int_distribution<int> dist{ 1, m_HighestNumber };
 
 	int constexpr border{ 50 };
 	int constexpr cellLength{ 100 };
 	int constexpr regionBorderThickness{ 3 };
 
-	for (unsigned int rowIdx{}; rowIdx < m_Rows; ++rowIdx)
+	for (int rowIdx{}; rowIdx < m_Rows; ++rowIdx)
 	{
-		for (unsigned int colIdx{}; colIdx < m_Cols; ++colIdx)
+		for (int colIdx{}; colIdx < m_Cols; ++colIdx)
 		{
-			unsigned int const arrIdx{ rowIdx * m_Cols + colIdx };
+			int const arrIdx{ rowIdx * m_Cols + colIdx };
 			
 			std::unique_ptr cellUPtr{ std::make_unique<amu::GameObject>() };
 			cellUPtr->AddComponent<amu::TransformComponent>(cellUPtr.get(), glm::vec2{ border + colIdx * cellLength, border + rowIdx * cellLength });
@@ -112,13 +112,13 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 	}
 
 	auto* ownerPtr{ GetComponentOwner() };
-	for (unsigned int arrIdx{}; arrIdx < std::size(m_CellVec); ++arrIdx)
+	for (int arrIdx{}; arrIdx < std::size(m_CellVec); ++arrIdx)
 	{
 		assert(arrIdx < ownerPtr->GetChildCount());
 
 		auto* childUPtr{ ownerPtr->GetChildAt(arrIdx) };
 
-		if (unsigned const int leftIdx{ GetNeighbourIdxLeft(arrIdx) }; leftIdx != max::UIN)
+		if (int const leftIdx{ GetNeighbourIdxLeft(arrIdx) }; leftIdx != error::IN)
 		{
 			if (m_CellVec[arrIdx].RegionID != m_CellVec[leftIdx].RegionID)
 			{
@@ -130,7 +130,7 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 			SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ -cellLength / 2 + regionBorderThickness, 0 });
 			SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ -cellLength / 2 + regionBorderThickness * 2, 0 });
 		}
-		if (unsigned const int rightIdx{ GetNeighbourIdxRight(arrIdx) }; rightIdx != max::UIN)
+		if (int const rightIdx{ GetNeighbourIdxRight(arrIdx) }; rightIdx != error::IN)
 		{
 			if (m_CellVec[arrIdx].RegionID != m_CellVec[rightIdx].RegionID)
 			{
@@ -142,7 +142,7 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 			SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ cellLength / 2 - regionBorderThickness, 0 });
 			SpawnBar(Orientation::Vertical, scenePtr, childUPtr, glm::vec2{ cellLength / 2 - regionBorderThickness * 2, 0 });
 		}
-		if (unsigned const int topIdx{ GetNeighbourIdxUp(arrIdx) }; topIdx != max::UIN)
+		if (int const topIdx{ GetNeighbourIdxUp(arrIdx) }; topIdx != error::IN)
 		{
 			if (m_CellVec[arrIdx].RegionID != m_CellVec[topIdx].RegionID)
 			{
@@ -154,7 +154,7 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 			SpawnBar(Orientation::Horizontal, scenePtr, childUPtr, glm::vec2{ 0, -cellLength / 2 + regionBorderThickness });
 			SpawnBar(Orientation::Horizontal, scenePtr, childUPtr, glm::vec2{ 0, -cellLength / 2 + regionBorderThickness * 2 });
 		}
-		if (unsigned const int bottomIdx{ GetNeighbourIdxDown(arrIdx) }; bottomIdx != max::UIN)
+		if (int const bottomIdx{ GetNeighbourIdxDown(arrIdx) }; bottomIdx != error::IN)
 		{
 			if (m_CellVec[arrIdx].RegionID != m_CellVec[bottomIdx].RegionID)
 			{ 
@@ -169,47 +169,47 @@ void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 	}
 }
 
-unsigned int tct::TectonicGridComponent::GetNeighbourIdxLeft(unsigned int arrIdx)
+int tct::TectonicGridComponent::GetNeighbourIdxLeft(int arrIdx)
 {
-	unsigned int const colIdxLeft{ arrIdx % m_Cols - 1 };
+	int const colIdxLeft{ arrIdx % m_Cols - 1 };
 	if (colIdxLeft >= 0 and colIdxLeft < m_Cols)
 	{
 		return arrIdx - 1;
 	}
-	return max::UIN;
+	return error::IN;
 }
 
-unsigned int tct::TectonicGridComponent::GetNeighbourIdxRight(unsigned int arrIdx)
+int tct::TectonicGridComponent::GetNeighbourIdxRight(int arrIdx)
 {
-	unsigned int const colIdxRight{ arrIdx % m_Cols + 1 };
+	int const colIdxRight{ arrIdx % m_Cols + 1 };
 	if (colIdxRight < m_Cols)
 	{
 		return arrIdx + 1;
 	}
-	return max::UIN;
+	return error::IN;
 }
 
-unsigned int tct::TectonicGridComponent::GetNeighbourIdxUp(unsigned int arrIdx)
+int tct::TectonicGridComponent::GetNeighbourIdxUp(int arrIdx)
 {
-	unsigned int const rowIdxUp{ arrIdx / m_Cols - 1 };
+	int const rowIdxUp{ arrIdx / m_Cols - 1 };
 	if (rowIdxUp >= 0 and rowIdxUp < m_Rows)
 	{
 		return arrIdx - m_Cols;
 	}
-	return max::UIN;
+	return error::IN;
 }
 
-unsigned int tct::TectonicGridComponent::GetNeighbourIdxDown(unsigned int arrIdx)
+int tct::TectonicGridComponent::GetNeighbourIdxDown(int arrIdx)
 {
-	unsigned int const rowIdxDown{ arrIdx / m_Cols + 1 };
+	int const rowIdxDown{ arrIdx / m_Cols + 1 };
 	if (rowIdxDown < m_Rows)
 	{
 		return arrIdx + m_Cols;
 	}
-	return max::UIN;
+	return error::IN;
 }
 
-unsigned int tct::TectonicGridComponent::GetNeighbourIdx(direction const& dir, unsigned int arrIdx)
+int tct::TectonicGridComponent::GetNeighbourIdx(direction const& dir, int arrIdx)
 {
 	if (dir == tct::dir::LEFT)
 	{
@@ -227,54 +227,54 @@ unsigned int tct::TectonicGridComponent::GetNeighbourIdx(direction const& dir, u
 	{
 		return GetNeighbourIdxDown(arrIdx);
 	}
-	return max::UIN;
+	return error::IN;
 }
 
-bool tct::TectonicGridComponent::DoAdjecentCellsContainValue(unsigned int arrIdx, unsigned int cellValue)
+bool tct::TectonicGridComponent::DoAdjecentCellsContainValue(int arrIdx, int cellValue)
 {
-	std::unordered_set<unsigned int> tempSet{};
+	std::unordered_set<int> tempSet{};
 
-	unsigned int const cellLeftIdx{ GetNeighbourIdxLeft(arrIdx) };
-	unsigned int const cellRightIdx{ GetNeighbourIdxRight(arrIdx) };
-	unsigned int const cellTopIdx{ GetNeighbourIdxUp(arrIdx) };
-	unsigned int const cellBottomIdx{ GetNeighbourIdxDown(arrIdx) };
+	int const cellLeftIdx{ GetNeighbourIdxLeft(arrIdx) };
+	int const cellRightIdx{ GetNeighbourIdxRight(arrIdx) };
+	int const cellTopIdx{ GetNeighbourIdxUp(arrIdx) };
+	int const cellBottomIdx{ GetNeighbourIdxDown(arrIdx) };
 
-	if (cellLeftIdx != max::UIN) 
+	if (cellLeftIdx != error::IN) 
 	{
 		tempSet.insert(m_CellVec[cellLeftIdx].Value);
 	}
 
-	if (cellRightIdx != max::UIN)
+	if (cellRightIdx != error::IN)
 	{
 		tempSet.insert(m_CellVec[cellRightIdx].Value);
 	}
 
-	if (cellTopIdx != max::UIN)
+	if (cellTopIdx != error::IN)
 	{
 		tempSet.insert(m_CellVec[cellTopIdx].Value);
 	}
 
-	if (cellBottomIdx != max::UIN)
+	if (cellBottomIdx != error::IN)
 	{
 		tempSet.insert(m_CellVec[cellBottomIdx].Value);
 	}
 
-	if (cellLeftIdx != max::UIN and cellTopIdx != max::UIN)
+	if (cellLeftIdx != error::IN and cellTopIdx != error::IN)
 	{
 		tempSet.insert(m_CellVec[arrIdx - 1 - m_Cols].Value);
 	}
 
-	if (cellLeftIdx != max::UIN and cellBottomIdx != max::UIN)
+	if (cellLeftIdx != error::IN and cellBottomIdx != error::IN)
 	{
 		tempSet.insert(m_CellVec[arrIdx - 1 + m_Cols].Value);
 	}
 
-	if (cellRightIdx != max::UIN and cellTopIdx != max::UIN)
+	if (cellRightIdx != error::IN and cellTopIdx != error::IN)
 	{
 		tempSet.insert(m_CellVec[arrIdx + 1 - m_Cols].Value);
 	}
 
-	if (cellRightIdx != max::UIN and cellBottomIdx != max::UIN)
+	if (cellRightIdx != error::IN and cellBottomIdx != error::IN)
 	{
 		tempSet.insert(m_CellVec[arrIdx + 1 + m_Cols].Value);
 	}
@@ -282,35 +282,35 @@ bool tct::TectonicGridComponent::DoAdjecentCellsContainValue(unsigned int arrIdx
 	return tempSet.contains(cellValue);
 }
 
-std::vector<tct::direction> tct::TectonicGridComponent::GetPossibleNeighbourDirections(unsigned int arrIdx)
+std::vector<tct::direction> tct::TectonicGridComponent::GetPossibleNeighbourDirections(int arrIdx)
 {
 	std::vector<direction> possibleDirsVec{};
 	possibleDirsVec.reserve(tct::dir::NR_OF_DIRECTIONS);
-	if (GetNeighbourIdxLeft(arrIdx) != max::UIN)
+	if (GetNeighbourIdxLeft(arrIdx) != error::IN)
 	{
 		possibleDirsVec.emplace_back(tct::dir::LEFT);
 	}
-	if (GetNeighbourIdxRight(arrIdx) != max::UIN)
+	if (GetNeighbourIdxRight(arrIdx) != error::IN)
 	{
 		possibleDirsVec.emplace_back(tct::dir::RIGHT);
 	}
-	if (GetNeighbourIdxUp(arrIdx) != max::UIN)
+	if (GetNeighbourIdxUp(arrIdx) != error::IN)
 	{
 		possibleDirsVec.emplace_back(tct::dir::UP);
 	}
-	if (GetNeighbourIdxDown(arrIdx) != max::UIN)
+	if (GetNeighbourIdxDown(arrIdx) != error::IN)
 	{
 		possibleDirsVec.emplace_back(tct::dir::DOWN);
 	}
 	return possibleDirsVec;
 }
 
-std::vector<tct::direction> tct::TectonicGridComponent::GetNeighbourDirectionsWithoutID(unsigned int arrIdx)
+std::vector<tct::direction> tct::TectonicGridComponent::GetNeighbourDirectionsWithoutID(int arrIdx)
 {
 	std::vector<direction> dirWithoutIDVec{};
 	for (direction const& dir : GetPossibleNeighbourDirections(arrIdx))
 	{
-		if (m_CellVec[GetNeighbourIdx(dir, arrIdx)].RegionID == max::UIN)
+		if (m_CellVec[GetNeighbourIdx(dir, arrIdx)].RegionID == error::IN)
 		{
 			dirWithoutIDVec.emplace_back(dir);
 		}
