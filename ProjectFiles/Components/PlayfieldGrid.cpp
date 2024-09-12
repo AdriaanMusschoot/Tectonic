@@ -8,6 +8,8 @@
 
 #include "RenderComponent.h"
 #include "TextComponent.h"
+#include "Scene.h"
+#include "GameObject.h"
 
 #include "Configuration.h"
 
@@ -78,7 +80,7 @@ void tct::TectonicGridComponent::AssignValues()
 
 void tct::TectonicGridComponent::CreateEmptyCells(amu::Scene* scenePtr)
 {
-	auto* ownerPtr{ GetComponentOwner() };
+	amu::GameObject* ownerPtr{ GetComponentOwner() };
 
 	for (int rowIdx{}; rowIdx < m_Rows; ++rowIdx)
 	{

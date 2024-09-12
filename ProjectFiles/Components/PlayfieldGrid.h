@@ -3,10 +3,19 @@
 
 #include <vector>
 #include <unordered_set>
+#include "glm/glm.hpp"
 
 #include "Component.h"
-#include "Scene.h"
+
 #include "Configuration.h"
+
+namespace amu
+{
+
+	class GameObject;
+	class Scene;
+
+}
 
 namespace tct
 {

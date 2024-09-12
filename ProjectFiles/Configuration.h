@@ -6,13 +6,10 @@
 #include <numeric>
 #include <vector>
 
+#include "UsingDirectives.h"
+
 namespace tct
 {
-	using direction = std::pair<int, int>;
-
-	using gridOffset = std::pair<int, int>;
-
-	using shape = std::vector<gridOffset>;
 
 	namespace img
 	{

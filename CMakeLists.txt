@@ -8,7 +8,9 @@ set(GAME_FILES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ProjectFiles)
 
 # list source files here
 set(TECTONIC_SOURCE_FILES
-    "${GAME_FILES_DIR}/Main.cpp"                         "${GAME_FILES_DIR}/Configuration.h"
+    "${GAME_FILES_DIR}/Main.cpp"                         
+    "${GAME_FILES_DIR}/Configuration.h"
+    "${GAME_FILES_DIR}/UsingDirectives.h"
     "${GAME_FILES_DIR}/LoadFunctions.cpp"                "${GAME_FILES_DIR}/LoadFunctions.h"    
 
     "${GAME_FILES_DIR}/Components/PlayfieldGrid.h"       "${GAME_FILES_DIR}/Components/PlayfieldGrid.cpp"
