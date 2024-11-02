@@ -29,3 +29,9 @@ For a solution and my next approach, ill be trying to layout predetermined shape
 
 Here in a similar fashion to the first one it is also impossible to fill up. If there were a 4 or 5 filled in as part of a bigger shape (10), the shape (9) is not impossible to fill up. However due to the nature of the approach a shape with size one make this impossible to fill up. To solve this I will try to pre-emptively fill in the shape with its digits. I could then unwind the stack and place a different shape and try again.
 
+# Generating shapes
+
+![Alt text](Readme/ImpossibleShape.png)
+
+With this flood-fill approach there is another issue. Some shapes are simply not possible to generate.
+Take this one for example, coming from the middle square and choosing the utmost left square as our next square, There is no going back to any of the other squares. The approach of defining all shapes before hand and choosing them from a pool to place in the level should solve this issue.
