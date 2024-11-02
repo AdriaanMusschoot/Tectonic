@@ -17,8 +17,15 @@ I hadn't foreseen this but there were some issues that arose.
 
 ### Impossible shapes
 
-![Alt text](Readme/ImfillableShape01.png)
+![Alt text](Readme/ImfillableShape02.png)
 
 Some shapes become impossible to fill up with the correct numbers later on. Take this shape for example. Whatever is filled in in the middle square (1),
 is impossible to fill in any of the surrounding squares, making the outer shape (0) impossible to fill due to the ruleset of Tectonics.
 For a solution and my next approach, ill be trying to layout predetermined shapes instead of this flood fill approach.
+
+### Blocking shapes
+
+![Alt text](Readme/ImfillableShape01.png)
+
+Here in a similar fashion to the first one it is also impossible to fill up. If there were a 4 or 5 filled in as part of a bigger shape (10), the shape (9) is not impossible to fill up. However due to the nature of the approach a shape with size one make this impossible to fill up. To solve this I will try to pre-emptively fill in the shape with its digits. I could then unwind the stack and place a different shape and try again.
+
